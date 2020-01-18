@@ -5,9 +5,9 @@
 IntSLList::~IntSLList() 
 {
 	IntSLLNode * temp;
-	while(!isEmpty())
+	while (head != 0)
 	{
-		temp = head;
+		temp = head;	
 		head = head->next;
 		delete temp;
 	}
