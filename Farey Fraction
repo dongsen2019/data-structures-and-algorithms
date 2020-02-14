@@ -1,0 +1,117 @@
+//data structures and algorithms in C++ 3.11
+//Farey Fraction
+#ifndef FAREY_H_
+#define FAREY_H_
+
+#include <iostream>
+#include <list>
+using std::cout;
+using std::ostream;
+using std::list; //using namespace std;
+class Farey;
+
+class Fraction
+{
+	private:
+		int numerator;
+		int denominator;
+		Fraction * next;
+	public:
+		friend class Farey;
+		Fraction(int n, int d) {
+			numerator = n;
+			denominator = d;
+			next = nullptr;
+		}
+		friend ostream & operator<<(ostream & os, const Farey & obj);
+};
+
+class Farey 
+{
+	private:
+		Fraction * head;
+		int level;
+		void init();
+	public:
+		Farey();
+		Farey(int n = 1);
+		~Farey();
+		friend ostream & operator<<(ostream & os, const Farey & obj);
+};
+
+void Farey::init() 
+{
+	head = new Fraction(0,0);
+	head->next = new Fraction(0,1);
+	head->next->next = new Fraction(1,1); 
+}
+
+Farey::Farey()
+{
+	level = 1;
+	init();
+}
+
+Farey::Farey(int n)
+{
+	level = n;
+	init();
+	int a, b, c, d;
+	Fraction * pc = nullptr;
+	Fraction * pn = nullptr;
+	
+	for (int i = 1; i <= level; i++)
+	{
+		pc = head->next;
+		pn = pc->next;
+		while (pn != nullptr)
+		{
+			a = pc->numerator;
+			c = pc->denominator;
+			b = pn->numerator;
+			d = pn->denominator;
+			if (c + d <= n)
+			{
+				pc->next = new Fraction(a + b, c + d);
+				pc->next->next = pn;
+			}
+			pc = pc->next;
+			pn = pc->next->next;
+		}
+	}	
+}
+
+Farey::~Farey()
+{
+	Fraction * h = head;
+	Fraction * temp;
+	while (h != nullptr)
+	{
+		temp = h;
+		h = h->next;
+		delete temp;
+	}
+}
+
+ostream & operator<<(ostream & os, const Farey & obj)
+{
+	Fraction * p = obj.head->next;
+	os << "(";
+	while (p->next != nullptr)
+	{
+		os << p->numerator << "/" << p->denominator << ",";
+		p = p->next;
+	}
+	
+	os << p->numerator << "/" << p->denominator << ")";
+	return os;
+}
+
+int main() {
+	Farey zjc3(3), zjc4(4), zjc5(5);
+	cout << zjc3 << std::endl << zjc4 << std::endl << zjc5 << std::endl;
+	return 0;
+}
+
+
+#endif
