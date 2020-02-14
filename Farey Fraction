@@ -76,7 +76,7 @@ Farey::Farey(int n)
 				pc->next->next = pn;
 			}
 			pc = pc->next;
-			pn = pc->next->next;
+			pn = pc->next;
 		}
 	}	
 }
