@@ -1,0 +1,308 @@
+#include <iostream>
+#include <string.h>
+#include <string>
+#include <list>
+#include <algorithm>
+
+using namespace std;
+
+class Patron;
+
+class Book
+{
+	private:
+		char * title;
+		Patron * patron;
+	public:
+		Book() {
+			patron = 0;
+		}
+		bool operator== (const Book & bk) const {
+			return strcmp(title, bk.title) == 0;
+		}
+		ostream & printBook(ostream & os) const;
+
+		friend  ostream & operator<< (ostream & out, const Book & bk) {
+			return bk.printBook(out);
+		}
+		friend class CheckOutBook;
+		friend Patron;
+		friend void includeBook();
+		friend void checkOutBook();
+		friend void returnBook();
+};
+
+class Author
+{
+	private:
+		char * name;
+		list<Book> books;
+	public:
+		Author() {
+		}
+		bool operator== (const Author & ar) const {
+			return strcmp(name, ar.name) == 0;
+		}
+		ostream & printAuthor(ostream & os) const;
+
+		friend ostream & operator<< (ostream & out, const Author & ar) {
+			return ar.printAuthor(out);
+		}
+		friend class CheckOutBook;
+		friend Patron;
+		friend void includeBook();
+		friend void checkOutBook();
+		friend void returnBook();
+};
+
+class CheckOutBook
+{
+	private:
+		list<Author>::iterator author;
+		list<Book>::iterator book;
+	public:
+		CheckOutBook(list<Author>::iterator ar,list<Book>::iterator bk) {
+			author = ar;
+			book = bk;
+		}
+		bool operator== (const CheckOutBook & cbk) const {
+			return (strcmp(author->name, cbk.author->name) == 0)
+				&& (strcmp(book->title, cbk.book->title) == 0);
+		}
+		friend Patron;
+		friend void checkOutBook();
+		friend void returnBook();
+};
+
+class Patron
+{
+	private:
+		char * name;
+		list<CheckOutBook> books;
+	public:
+		Patron() {
+		}
+		bool operator== (const Patron & pn) const {
+			return strcmp(name, pn.name) == 0;
+		}
+		ostream & printPatron(ostream & os) const;
+
+		friend ostream & operator<<(ostream & out, const Patron & pn) {
+			return pn.printPatron(out);
+		}
+		friend Book;
+		friend void checkOutBook();
+		friend void returnBook();
+};
+
+list<Author> catalog['Z' + 1];
+list<Patron> people['Z' + 1];
+
+ostream & Author::printAuthor(ostream & os) const
+{
+	os << name << endl;
+	list<Book>::const_iterator ref = books.begin();
+	for ( ; ref != books.end(); ref++)
+		os << *ref; // overloaded <<
+	return os;
+}
+
+ostream & Book::printBook(ostream & os) const
+{
+	os << " * " << title;
+	if (patron != 0)
+		os << " - checked out to " << patron->name;
+	os << endl;
+	return os;
+}
+
+ostream & Patron::printPatron(ostream & os) const
+{
+	os << name;
+	if (!books.empty())
+	{
+		os << " has the following books:\n";
+		list<CheckOutBook>::const_iterator cbk = books.begin();
+		for ( ; cbk != books.end(); cbk++)
+			os << " * " << cbk->author->name << ", "
+			   << cbk->book->title << endl;
+	}
+	else
+		os << " has no book\n";
+	return os;
+}
+
+template <typename T>
+ostream & operator<< (ostream & os, const list<T>& lst)
+{
+    typename std::list<T>::const_iterator ref = lst.begin();
+    for (; ref != lst.end(); ref++)
+        os << *ref;
+    return os;
+}
+
+char * getString(char * msg)
+{
+    int len = 82;
+    char s[len];
+    char * destin;
+    cout << msg;
+    cin.get(s,len-2);
+    while (cin.get(s[len-1]) && s[len-1] != '\n');
+    destin = new char[strlen(s) + 1];
+    destin[0] = toupper(s[0]);
+    for (int i = 1; i < strlen(s) + 1 ;i++)
+        destin[i] = s[i]; 
+    return destin;
+}
+
+void status()
+{
+    register int i;
+    cout << "图书馆中有以下书籍:\n\n";
+    for (i = 'A'; i <= 'Z'; i++)
+        if (!catalog[i].empty())
+            cout << catalog[i];
+    cout << "\n下列人员正在使用图书馆:\n\n";
+    for (i = 'A'; i <= 'Z'; i++)
+        if(!people[i].empty())
+            cout << people[i];
+}
+
+void includeBook()
+{
+    Author newAuthor;
+    Book newBook;
+    newAuthor.name = getString("Enter author's name: ");
+    newBook.title = getString("Enter the title of the book: ");
+    list<Author>::iterator oldAuthor =
+                    find(catalog[newAuthor.name[0]].begin(),
+                         catalog[newAuthor.name[0]].end(),newAuthor);
+    if (oldAuthor == catalog[newAuthor.name[0]].end())
+    {
+        newAuthor.books.push_front(newBook);
+        catalog[newAuthor.name[0]].push_front(newAuthor);
+    }
+    else
+    {
+        (*oldAuthor).books.push_front(newBook);
+    }
+}
+
+void checkOutBook()
+{
+    Patron patron;
+    Author author;
+    Book book;
+    list<Author>::iterator authorRef;
+    list<Book>::iterator bookRef;
+    patron.name = getString("Enter patron's name: ");
+    while (true)
+    {
+        author.name = getString("Enter author's name: ");
+        authorRef = find(catalog[author.name[0]].begin(),
+                         catalog[author.name[0]].end(),author);
+        if (authorRef == catalog[author.name[0]].end())
+            cout << "Misspelled author's name\n";
+        else
+            break;
+    }
+    while (true)
+    {
+        book.title = getString("Enter the title of the book: ");
+        bookRef = find((*authorRef).books.begin(),
+                       (*authorRef).books.end(),book);
+        if (bookRef == (*authorRef).books.end())
+            cout << "Misspelled title\n";
+        else
+            break;
+    }
+    list<Patron>::iterator patronRef;
+    patronRef = find(people[patron.name[0]].begin(),
+                     people[patron.name[0]].end(),patron);
+    CheckOutBook cob(authorRef, bookRef);
+    if (patronRef == people[patron.name[0]].end())
+    {
+        patron.books.push_front(cob);
+        people[patron.name[0]].push_front(patron);
+        (*bookRef).patron = &( *(people[patron.name[0]].begin()) );
+    }
+    else
+    {
+        (*patronRef).books.push_front(cob);
+        (*bookRef).patron = &(*patronRef);
+    }
+}
+
+void returnBook()
+{
+    Patron patron;
+    Author author;
+    Book book;
+    list<Patron>::iterator patronRef;
+    list<Author>::iterator authorRef;
+    list<Book>::iterator bookRef;
+    while (true)
+    {
+        patron.name = getString("Enter the patron's name: ");
+        patronRef = find(people[patron.name[0]].begin(),
+                         people[patron.name[0]].end(),patron);
+        if (patronRef == people[patron.name[0]].end())
+            cout << "Misspelled patron's name\n";
+        else
+            break;
+    }
+    while (true)
+    {
+        author.name = getString("Enter the author's name: ");
+        authorRef = find(catalog[author.name[0]].begin(),
+                         catalog[author.name[0]].end(),author);
+        if (authorRef == catalog[author.name[0]].end())
+            cout << "Misspelled author's name\n";
+        else
+            break;
+    }
+    while (true)
+    {
+        book.title = getString("Enter the book's name: ");
+        bookRef = find((*authorRef).books.begin(),
+                       (*authorRef).books.end(),book);
+        if (bookRef == (*authorRef).books.end())
+            cout << "Misspelled title\n";
+        else
+            break;
+    }
+    CheckOutBook cob(authorRef, bookRef);
+    (*bookRef).patron = 0;
+    (*patronRef).books.remove(cob);
+}
+
+int menu()
+{
+    int option;
+    cout << "\nEnter one of the following options:\n"
+         << "1. Include a book in the catalog\n2. Check out a book\n"
+         << "3. Return a book\n4. Status\n5. Exit\n"
+         << "Your option? ";
+    cin >> option;
+    cin.get();
+    return option;
+}
+
+int main(void)
+{
+    while (true)
+        switch (menu())
+        {
+            case 1: includeBook();
+                    break;
+            case 2: checkOutBook();
+                    break;
+            case 3: returnBook();
+                    break;
+            case 4: status();
+                    break;
+            case 5: return 0;
+            default: cout << "Wrong option, try again: ";
+        }
+}
