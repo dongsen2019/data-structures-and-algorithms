@@ -10,8 +10,6 @@ class DDLQueue
 {
 	private:
 		list<T> que;
-		T * head;
-		T * tail;
 	public:
 		DLLQueue() {
 			head = tail = 0;
