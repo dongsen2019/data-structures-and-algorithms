@@ -1,0 +1,35 @@
+#include <iostream>
+#include <stack>
+
+using namespace std;
+
+template<typename T>
+class Stack: public stack<T>
+{
+	public:
+		T pop() {
+			T temp = stack<T>::top();
+			stack<T>::pop();
+			return temp;
+		}
+};
+
+int main(void)
+{
+	char ch;
+	Stack<char> ot;
+	Stack<char> pla;
+	cout << "Please enter the next: ";
+	while((ch = cin.get()) != '\n')
+		ot.push(ch);
+	Stack<char> tep = ot;
+	while(!tep.empty())
+		pla.push(tep.pop());
+	while( (!ot.empty() && !pla.empty()) && (ot.pop() == pla.pop()) )
+		continue;
+	if(ot.empty() && pla.empty())
+		cout << "palindrome";
+	else
+		cout << "not pla";
+	return 0;
+}
