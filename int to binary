@@ -1,0 +1,61 @@
+#include <iostream>
+#include <stack>
+
+using namespace std;
+
+class bin 
+{
+	private:
+		int n;
+		stack<int> bi;
+	public:
+		bin(int i) { n = i; }
+		void tobi();
+		void show();
+};
+
+
+
+void bin::tobi()
+{
+	int num;
+	while(n>0)
+	{
+		num = n%2;
+		n = n/2;
+		bi.push(num);
+	}
+}
+
+void bin::show()
+{
+	int temp;
+	while(!bi.empty())
+	{
+		temp = bi.top();
+		bi.pop();
+		cout << temp;
+	}
+	cout << endl;
+}
+
+
+int main(void)
+{
+	bin ntobi1(5);
+	ntobi1.tobi();
+	ntobi1.show();
+	bin ntobi2(6);
+	ntobi2.tobi();
+	ntobi2.show();
+	bin ntobi3(7);
+	ntobi3.tobi();
+	ntobi3.show();
+	bin ntobi4(100);
+	ntobi4.tobi();
+	ntobi4.show();
+	bin ntobi5(101);
+	ntobi5.tobi();
+	ntobi5.show();
+	return 0;
+}
