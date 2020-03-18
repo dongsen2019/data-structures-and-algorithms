@@ -1,0 +1,144 @@
+#include <iostream>
+#include <string>
+#include <stack>
+#include <cstring>
+
+using namespace std;
+
+template<typename T>
+class Stack : public stack<T> {
+	public:
+		T pop() {
+			T temp = stack<T>::top();
+			stack<T>::pop();
+			return temp;
+		}		
+};
+
+class Cell 
+{
+	private:
+		int x, y;
+		friend class Maze;
+	public:
+		Cell(int i = 0, int j = 0) {
+			x = i;
+			y = j;
+		}
+		bool operator==(const Cell & cel) const {
+			return (x == cel.x && y == cel.y);
+		} 
+};
+
+class Maze
+{
+	private:
+		Cell currentCell, exitCell, entryCell;
+		const char exitMarker, entryMarker, visited, passage, wall;
+		Stack<Cell> mazeStack;
+		char **store;
+		void pushUnvisited(int row, int col);
+		friend ostream & operator<<(ostream & os, const Maze & mz);
+		int rows, cols;
+	public:
+		Maze();
+		void exitMaze(); 
+};
+
+Maze::Maze() : exitMarker('e'), entryMarker('m'), 
+			visited('.'), passage('0'), wall('1')
+{
+	Stack<char *> mazeRows;
+	char str[80];
+	char * s;
+	int col = 0;
+	int row = 0;
+	cout << "Enter a rectangular maze the following "
+		 << "characters:\nm - entry\ne - exit\n1 - wall\n0 - passage\n"
+		 << "Enter one line at at time; end with Ctrl-z:\n";
+	while (cin >> str) 
+	{
+		row++;
+		cols = strlen(str);
+		s = new char[cols+3];
+		
+		strcpy(s+1, str);
+		s[cols+2] = '\0';
+		s[0] = s[cols+1] = wall;
+		if (strchr(s, entryMarker) != 0)
+		{
+			entryCell.x = row;
+			entryCell.y = strchr(s, entryMarker) - s;
+		}
+		if (strchr(s, exitMarker) != 0)
+		{
+			exitCell.x = row;
+			exitCell.y = strchr(s, exitMarker) - s;
+		}
+		mazeRows.push(s);
+	}
+	
+	rows = row;
+	store = new char*[rows+2];
+	store[0] = new char[cols+3];
+	for ( ; !mazeRows.empty() ; row--) 
+	{
+		store[row] = mazeRows.pop();
+	}
+	store[rows+1] = new char[cols+3];
+	store[0][cols+2] = store[rows+1][cols+2] = '\0';
+	for (int i = 0 ; i < cols + 2 ; i++)
+	{
+		store[0][i] = wall;
+		store[rows+1][i] = wall;
+	}
+		
+}
+
+void Maze::pushUnvisited(int row, int col)
+{
+	if (store[row][col] == passage || store[row][col] == exitMarker)
+	{
+		mazeStack.push(Cell(row,col));
+	}
+}
+
+void Maze::exitMaze()
+{
+	int row, col;
+	currentCell = entryCell;
+	while (!(currentCell == exitCell))
+	{
+		row = currentCell.x;
+		col = currentCell.y;
+		cout << *this;
+		if (!(currentCell == exitCell))
+			store[row][col] = visited;
+		pushUnvisited(row, col+1);
+		pushUnvisited(row, col-1);
+		pushUnvisited(row+1, col);
+		pushUnvisited(row-1, col);
+		if (mazeStack.empty()) {
+			cout << *this;
+			cout << "Failure\n";
+			return;
+		}
+		else currentCell = mazeStack.pop();
+	}
+	cout << *this;
+	cout << "Success\n";
+}
+
+ostream & operator<<(ostream & os, const Maze & mz)
+{
+	for (int row = 0; row <= mz.rows+1; row++)
+		os << mz.store[row] << endl;
+	os << endl;
+	return os;
+}
+
+int main()
+{
+	Maze().exitMaze();
+	return 0;
+}
