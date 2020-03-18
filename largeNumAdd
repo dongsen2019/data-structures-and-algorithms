@@ -1,0 +1,97 @@
+#include <iostream>
+#include <stack>
+#include <string>
+
+using namespace std;
+
+template<typename T>
+class Stack: public stack<T>
+{
+	public:
+		T pop()
+		{
+			T temp = stack<T>::top();
+			stack<T>::pop();
+			return temp;
+		}
+};
+
+void scn(const string & s, Stack<int> & n);
+Stack<int> sum(Stack<int> add1, Stack<int> add2);
+
+int main(void)
+{
+	string n1;
+	string n2;
+	Stack<int> num1;
+	Stack<int> num2;
+	Stack<int> total;
+	cout << "enter first large number: ";
+	cin >> n1;
+	cout << "enter second large number: ";
+	cin >> n2;
+	scn(n1,num1);
+	scn(n2,num2);
+
+	total = sum(num1,num2);
+	while (!total.empty())
+	{
+		cout << total.pop();
+	}
+
+	return 0;
+}
+
+void scn(const string & s, Stack<int> & n)
+{
+	int len = s.length();
+	for (int i = 0; i < len; i++)
+    {
+        int a = int(s[i] - '0');
+        n.push(a);
+    }
+
+}
+
+Stack<int> sum(Stack<int> add1, Stack<int> add2)
+{
+	int a,b;
+	int cb = 0;
+	Stack<int> temp;
+	while (!add1.empty() || !add2.empty())
+	{
+		if (add1.empty() && !add2.empty())
+		{
+			a = 0;
+			b = add2.pop();
+		}
+		else if (!add1.empty() && add2.empty())
+		{
+			a = add1.pop();
+			b = 0;
+		}
+		else if (add1.empty() && add2.empty())
+		{
+			a = 0;
+			b = 0;
+		}
+		else
+		{
+			a = add1.pop();
+			b = add2.pop();
+		}
+
+		if (a + b >= 10)
+		{
+			temp.push( (a+b) % 10 + cb );
+			cb = 1;
+		}
+		else
+		{
+			temp.push( (a+b) % 10 + cb );
+			cb = 0;
+		}
+	}
+
+	return temp;
+}
