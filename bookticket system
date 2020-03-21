@@ -1,0 +1,221 @@
+#include <iostream>
+#include <list>
+#include <string>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+class Flight;
+
+class Person
+{
+	public:
+		bool operator==(const Person & pn) const {
+			return strcmp(name,pn.name) == 0;
+		}
+	private:
+		friend Flight;
+		char * name;
+		list<Flight> flights;
+		ostream & printPerson(ostream & os) const;
+		friend ostream & operator<<(ostream & os, const Person & pn) {
+			return pn.printPerson(os);
+		}
+		friend void bookTickets();
+		friend void cancelTickets();
+		friend void referTickets();
+};
+
+class Flight
+{
+	public:
+		friend class Person;
+		Flight() {
+
+		}
+		Flight(int i) {
+			flightNum = i;
+		}
+		Flight & operator=(const Flight & fl) {
+		    if (this == &fl)
+                return *this;
+			flightNum = fl.flightNum;
+			return *this;
+		}
+		bool operator==(const Flight & fl) const {
+			return flightNum == fl.flightNum;
+		}
+	private:
+		int flightNum;
+		list<Person *> persons;
+		ostream & printFlight(ostream & os) const;
+		friend ostream & operator<<(ostream & os, const Flight & fl) {
+			return fl.printFlight(os);
+		}
+		friend void bookTickets();
+		friend void cancelTickets();
+		friend void referTickets();
+};
+
+Flight catalog[11];
+list<Person> people['z'+1];
+
+void scheduling()
+{
+	for (int i = 1; i < 11; i++)
+    {
+        Flight temp(i);
+        catalog[i] = temp;
+    }
+}
+
+ostream & Person::printPerson(ostream & os) const
+{
+	os << "Name: " << name << endl;
+	if (!flights.empty())
+	{
+		list<Flight>::const_iterator ref = flights.begin();
+		os << "Flights: ";
+		for ( ; ref != flights.end(); ref++)
+			os << (*ref).flightNum << " ";
+		os << endl;
+	}
+	else
+		os << "No Flights";
+}
+
+ostream & Flight::printFlight(ostream & os) const
+{
+	os << "FlightNum: " << flightNum << endl;
+	if (!persons.empty())
+	{
+		list<Person *>::const_iterator ref = persons.begin();
+		os << "Persons-Book: ";
+		for ( ; ref != persons.end(); ref++)
+			os << (**ref).name << " ";
+		os << endl;
+	}
+	else
+		os << "No Persons";
+}
+
+char * getString(char * s)
+{
+	char str[82];
+	char * destin;
+	cout << s;
+	cin.get(str,80);
+	while (cin.get(str[81]) && str[81] != '\n')
+		continue;
+	destin = new char[strlen(str) + 1];
+	for (int i = 0; destin[i] = tolower(str[i]); i++);
+	return destin;
+}
+
+void bookTickets()
+{
+	Person psn;
+	int flightNumber;
+	psn.name = getString("Enter your name: ");
+	cout << "Choose your flight number: ";
+	cin >> flightNumber;
+	while (cin.get() != '\n')
+		continue;
+	list<Person>::iterator oldPerson =
+				  find(people[psn.name[0]].begin(),
+				  	   people[psn.name[0]].end(), psn);
+	if (oldPerson == people[psn.name[0]].end())
+	{
+		psn.flights.push_front(catalog[flightNumber]);
+		people[psn.name[0]].push_front(psn);
+		catalog[flightNumber].persons.push_front(&*people[psn.name[0]].begin());
+	}
+	else
+	{
+		(*oldPerson).flights.push_front(catalog[flightNumber]);
+		catalog[flightNumber].persons.push_front(&(*oldPerson));
+	}
+}
+
+void cancelTickets()
+{
+	Person psn;
+	int flightNumber;
+	list<Person>::iterator oldPerson;
+	while (true)
+	{
+		psn.name = getString("Enter your name: ");
+		oldPerson =	find(people[psn.name[0]].begin(),
+					people[psn.name[0]].end(), psn);
+		if (oldPerson == people[psn.name[0]].end())
+			cout << "Misspelled person's name\n";
+		else
+			break;
+	}
+	cout << (*oldPerson);
+
+	cout << "Enter the flightNumber to be canceled: ";
+	while (true)
+	{
+		cin >>  flightNumber;
+		while(cin.get() != '\n')
+			continue;
+		if (!(flightNumber >= 0 && flightNumber <= 10))
+			cout << "Please enter the correct flightNumber: ";
+		else
+			break;
+	}
+	(*oldPerson).flights.remove(catalog[flightNumber]);
+	catalog[flightNumber].persons.remove(&*oldPerson);
+}
+
+void referTickets()
+{
+	Person psn;
+	list<Person>::iterator ref;
+	while (true)
+	{
+		psn.name = getString("Enter your name: ");
+		ref = find(people[psn.name[0]].begin(),
+				   people[psn.name[0]].end(), psn);
+		if (ref == people[psn.name[0]].end())
+			cout << "There is no such person! try again!\n";
+		else
+			break;
+	}
+	cout << *ref;
+}
+
+void status()
+{
+	cout << "Flights has the following information:  " << endl;
+	for (int i = 1; i < 11 ; i++)
+		cout << catalog[i] << endl;
+}
+
+int menu()
+{
+	int option;
+	cout << "\nEnter one of the following options:\n"
+		 << "1. book a Ticket\n2. cancelTickets\n"
+		 << "3. referTickets\n4. Status\n5. Exit\n"
+		 << "Your option? ";
+	cin >> option;
+	cin.get();
+	return option;
+}
+
+int main(void)
+{
+	scheduling();
+	while (true)
+		switch (menu())
+		{
+			case 1: bookTickets(); break;
+			case 2: cancelTickets(); break;
+			case 3: referTickets(); break;
+			case 4: status(); break;
+			case 5: return 0;
+		}
+}
