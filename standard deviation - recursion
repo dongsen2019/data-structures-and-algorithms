@@ -1,0 +1,50 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+double vtSum(const vector<double> & vt, int size)
+{
+	if (size > 1)
+		return vt[size-1]+vtSum(vt, size-1);
+	else
+		return vt[0];
+}
+
+double mean(double vtSum, int n)
+{
+		return	vtSum/n;
+}
+
+double vartmp(const vector<double> & vt, int size, const double mean)
+{
+	if (size > 1)
+		return pow((vt[size-1] - mean), 2) + vartmp(vt, size-1, mean);
+	else
+		return pow((vt[0] - mean), 2);
+}
+
+double var(double vartmp , int n)
+{
+	return vartmp/(n - 1);
+}
+
+double st(double var)
+{
+	return sqrt(var);
+}
+
+int main(void)
+{
+	vector<double> vct;
+	for (int i = 0; i < 500; i++)
+		vct.push_back(i);
+	double m = mean(vtSum(vct, vct.size()), vct.size());
+	cout << m << endl;
+	double v = var(vartmp(vct, vct.size(), m), vct.size());
+	cout << v << endl;
+	cout << st(v);
+	
+	return 0;
+}
