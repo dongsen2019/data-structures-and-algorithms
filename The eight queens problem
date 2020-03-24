@@ -1,0 +1,95 @@
+#include <iostream>
+
+using namespace std;
+
+class ChessBoard
+{
+	public:
+		ChessBoard();
+		ChessBoard(int n);
+		void findSolutions();
+	private:
+		const bool available;
+		const int squares, norm;
+		bool *column, *leftDiagonal, *rightDiagonal;
+		int *positionInRow, howMany;
+		void putQueen(int row);
+		void printBoard(ostream & os);
+		void initializeBoard();
+};
+
+
+
+ChessBoard::ChessBoard() : available(true), squares(8), norm(squares-1)
+{
+	initializeBoard();
+}
+
+ChessBoard::ChessBoard(int n) : available(true), squares(n), norm(squares-1)
+{
+	initializeBoard();
+}
+
+void ChessBoard::initializeBoard()
+{
+	int i;
+	column = new bool[squares];
+	leftDiagonal = new bool[squares*2 - 1];
+	rightDiagonal = new bool[squares*2 -1];
+	positionInRow = new int[squares];
+	for (i = 0; i < squares; i++)
+		column[i] = available;
+	for (i = 0; i < squares*2 -1; i++)
+		leftDiagonal[i] = available;
+	for (i = 0; i < squares*2 -1; i++)
+		rightDiagonal[i] = available;
+	for (i = 0; i < squares; i++)
+		positionInRow[i] = -1;
+		
+	howMany = 0;
+}
+
+void ChessBoard::putQueen(int row)
+{
+	for (int col = 0; col < squares; col++)
+		if (column[col] == available &&
+			leftDiagonal[row+col] == available &&
+			rightDiagonal[row-col+norm] == available)
+		{
+			column[col] = !available;
+			leftDiagonal[row+col] = !available;
+			rightDiagonal[row-col+norm]	= !available;
+			positionInRow[row] = col;
+			if (row < norm)
+				putQueen(row + 1);
+			else
+				printBoard(cout);
+			column[col] = available;
+			leftDiagonal[row+col] = available;
+			rightDiagonal[row-col+norm]	= available;
+			positionInRow[row] = -1;
+		}
+}
+
+void ChessBoard::printBoard(ostream & os)
+{
+	os << "position: " << endl;
+	for (int i = 0; i < squares; i++)
+	{
+		if (positionInRow[i] != -1)
+			os << "(" << i << "," << positionInRow[i] << ")" << endl;
+	}	
+}
+
+void ChessBoard::findSolutions()
+{
+	putQueen(0);
+}
+
+int main(void) 
+{
+	ChessBoard cb(8);
+	cb.findSolutions();
+	
+	return 0;
+}
